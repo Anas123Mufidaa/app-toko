@@ -15,4 +15,25 @@ async function getProducts() {
     }
 }
 
-export { getProducts };
+
+async function addProducts({ nama_barang, harga }) {
+    try {
+        const response = await fetch(`${API_URL}/tambah_barang.php`, {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({nama_barang, harga}),
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            return result.data;
+        }
+        return [];
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return [];
+    }
+}
+
+export { getProducts, addProducts };
