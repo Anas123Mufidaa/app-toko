@@ -36,4 +36,32 @@ async function addProducts({ nama_barang, harga }) {
     }
 }
 
-export { getProducts, addProducts };
+async function deleteProducts(id) { 
+    try {
+        const response = await fetch(`${API_URL}/hapus_barang.php`, {
+            method: "DELETE",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id }) 
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Delete error:", error);
+        return { status: 'error' };
+    }
+}
+
+async function updateProducts({id, nama_barang, harga}) {
+    try {
+        const response = await fetch(`${API_URL}/update_barang.php`, {
+            method: "PUT", 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id, nama_barang, harga }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Update error:', error);
+        return { status: 'error' };
+    }
+}
+
+export { getProducts, addProducts, deleteProducts, updateProducts };
