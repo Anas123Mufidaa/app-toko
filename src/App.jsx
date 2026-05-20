@@ -1,7 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
-import { Table, Button, Input, Label, Modal, Surface, TextField, Toast, toast } from "@heroui/react";
+import { Pagination, Table, Button, Input, Label, Modal, TextField, Toast, toast } from '@heroui/react';
 import { getProducts, addProducts, deleteProducts, updateProducts } from './service/api-service.js';
+
+const ROWS_PER_PAGE = 10;
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -9,23 +11,28 @@ function App() {
   const [price, setPrice] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  
+
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState(null);
 
   const [submitError, setSubmitError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(1);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+
       const result = await getProducts();
-      setProducts(result);
+      const safeProducts = Array.isArray(result) ? result : [];
+      setProducts(safeProducts);
+      setPage(1);
     } catch (err) {
-      setError("Gagal memuat data produk.");
+      setError('Gagal memuat data produk.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -36,6 +43,20 @@ function App() {
     fetchData();
   }, [fetchData]);
 
+  const totalPages = Math.max(1, Math.ceil(products.length / ROWS_PER_PAGE));
+  const pages = useMemo(
+    () => Array.from({ length: totalPages }, (_, index) => index + 1),
+    [totalPages],
+  );
+
+  const paginatedProducts = useMemo(() => {
+    const start = (page - 1) * ROWS_PER_PAGE;
+    return products.slice(start, start + ROWS_PER_PAGE);
+  }, [products, page]);
+
+  const startResult = products.length === 0 ? 0 : (page - 1) * ROWS_PER_PAGE + 1;
+  const endResult = Math.min(page * ROWS_PER_PAGE, products.length);
+
   const openDeleteModal = (id) => {
     setIdToDelete(id);
     setIsDeleteOpen(true);
@@ -45,11 +66,11 @@ function App() {
     setSubmitting(true);
     try {
       await deleteProducts(idToDelete);
-      toast.success("Dihapus", { description: "Produk berhasil dibuang dari list." });
+      toast.success('Dihapus', { description: 'Produk berhasil dihapus.' });
       setIsDeleteOpen(false);
       await fetchData();
     } catch (err) {
-      toast.error("Gagal", { description: "Gagal menghapus data." });
+      toast.error('Gagal', { description: 'Gagal menghapus data.' });
     } finally {
       setSubmitting(false);
     }
@@ -70,15 +91,15 @@ function App() {
     try {
       if (selectedId) {
         await updateProducts({ id: selectedId, nama_barang: title, harga: price });
-        toast.success("Diperbarui", { description: "Data berhasil diupdate" });
+        toast.success('Diperbarui', { description: 'Data berhasil diubah' });
       } else {
         await addProducts({ nama_barang: title, harga: price });
-        toast.success("Berhasil", { description: "Data berhasil ditambahkan" });
+        toast.success('Berhasil', { description: 'Data berhasil ditambahkan' });
       }
       handleOpenChange(false);
       await fetchData();
     } catch (err) {
-      setSubmitError("Terjadi kesalahan teknis.");
+      setSubmitError('Terjadi kesalahan teknis.');
     } finally {
       setSubmitting(false);
     }
@@ -98,7 +119,7 @@ function App() {
   return (
     <div className="min-h-screen bg-linear-to-b from-blue-200 to-white p-8">
       <Toast.Provider placement="top end" />
-      
+
       <div className="max-w-3xl mx-auto mb-6 flex items-baseline justify-between">
         <h1 className="text-2xl font-bold text-slate-800">Daftar Produk</h1>
         <Button variant="primary" onPress={() => setIsOpen(true)}>Tambah Data</Button>
@@ -108,7 +129,7 @@ function App() {
             <Modal.Container>
               <Modal.Dialog>
                 <Modal.Header>
-                  <Modal.Heading>{selectedId ? "Edit Produk" : "Tambah Produk"}</Modal.Heading>
+                  <Modal.Heading>{selectedId ? 'Edit Produk' : 'Tambah Produk'}</Modal.Heading>
                 </Modal.Header>
                 <Modal.Body className="p-6">
                   <form id="product-form" onSubmit={onSubmitHandler} className="flex flex-col gap-4">
@@ -125,7 +146,7 @@ function App() {
                 <Modal.Footer>
                   <Button slot="close" variant="outline">Batal</Button>
                   <Button type="submit" form="product-form" isLoading={submitting}>
-                    {selectedId ? "Update" : "Simpan"}
+                    {selectedId ? 'Update' : 'Simpan'}
                   </Button>
                 </Modal.Footer>
               </Modal.Dialog>
@@ -145,9 +166,9 @@ function App() {
                 </Modal.Body>
                 <Modal.Footer>
                   <Button slot="close" variant="outline" isDisabled={submitting}>Batal</Button>
-                  <Button 
-                    variant="danger" 
-                    onPress={confirmDelete} 
+                  <Button
+                    variant="danger"
+                    onPress={confirmDelete}
                     isLoading={submitting}
                   >
                     Ya, Hapus
@@ -159,35 +180,82 @@ function App() {
         </Modal>
       </div>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto overflow-x-auto overflow-y-visible">
+        {error ? (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-600">{error}</div>
+        ) : null}
+
         <Table>
-          <Table.ScrollContainer>
-            <Table.Content aria-label="Tabel Produk">
+          <Table.ScrollContainer className="sm:min-w-190">
+            <Table.Content aria-label="Tabel Produk" className="min-w-190">
               <Table.Header>
-                <Table.Column>No</Table.Column>
-                <Table.Column>Nama Barang</Table.Column>
-                <Table.Column>Harga</Table.Column>
-                <Table.Column align="end">Aksi</Table.Column>
+                <Table.Column className="whitespace-nowrap">No</Table.Column>
+                <Table.Column className="whitespace-nowrap">Nama Barang</Table.Column>
+                <Table.Column className="whitespace-nowrap">Harga</Table.Column>
+                <Table.Column className="whitespace-nowrap" align="end">Aksi</Table.Column>
               </Table.Header>
               <Table.Body emptyContent="Data kosong.">
-                {products.map((product, index) => (
+                {paginatedProducts.map((product, index) => (
                   <Table.Row key={product.id}>
-                    <Table.Cell>{index + 1}</Table.Cell>
-                    <Table.Cell>{product.nama_barang}</Table.Cell>
-                    <Table.Cell>Rp {Number(product.harga).toLocaleString('id-ID')}</Table.Cell>
-                    <Table.Cell className="flex justify-end gap-2">
-                      <Button variant="light" className="bg-blue-100" isIconOnly onPress={() => onEditHandler(product)}>
-                        <Icon icon="solar:pen-new-round-bold" className="text-blue-600" />
-                      </Button> 
-                      <Button variant="danger-soft" isIconOnly onPress={() => openDeleteModal(product.id)}>
-                        <Icon icon="solar:trash-bin-trash-bold" className="w-5 h-5" />
-                      </Button>
+                    <Table.Cell className="whitespace-nowrap">
+                      {(page - 1) * ROWS_PER_PAGE + index + 1}
+                    </Table.Cell>
+                    <Table.Cell className="whitespace-nowrap">{product.nama_barang}</Table.Cell>
+                    <Table.Cell className="whitespace-nowrap">
+                      Rp {Number(product.harga).toLocaleString('id-ID')}
+                    </Table.Cell>
+                    <Table.Cell className="whitespace-nowrap">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="light" className="bg-blue-100" isIconOnly onPress={() => onEditHandler(product)}>
+                          <Icon icon="solar:pen-new-round-bold" className="text-blue-600" />
+                        </Button>
+                        <Button variant="danger-soft" isIconOnly onPress={() => openDeleteModal(product.id)}>
+                          <Icon icon="solar:trash-bin-trash-bold" className="w-5 h-5" />
+                        </Button>
+                      </div>
                     </Table.Cell>
                   </Table.Row>
                 ))}
               </Table.Body>
             </Table.Content>
           </Table.ScrollContainer>
+          <Table.Footer>
+            <Pagination size="sm">
+              <Pagination.Summary>
+                {startResult} to {endResult} of {products.length} results
+              </Pagination.Summary>
+              <Pagination.Content>
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={page === 1}
+                    onPress={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                  >
+                    <Pagination.PreviousIcon />
+                    Prev
+                  </Pagination.Previous>
+                </Pagination.Item>
+                {pages.map((paginationPage) => (
+                  <Pagination.Item key={paginationPage}>
+                    <Pagination.Link
+                      isActive={paginationPage === page}
+                      onPress={() => setPage(paginationPage)}
+                    >
+                      {paginationPage}
+                    </Pagination.Link>
+                  </Pagination.Item>
+                ))}
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={page === totalPages || products.length === 0}
+                    onPress={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+                  >
+                    Next
+                    <Pagination.NextIcon />
+                  </Pagination.Next>
+                </Pagination.Item>
+              </Pagination.Content>
+            </Pagination>
+          </Table.Footer>
         </Table>
       </div>
     </div>
