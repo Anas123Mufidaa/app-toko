@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
+import penNewRoundBold from '@iconify-icons/solar/pen-new-round-bold';
+import trashBinTrashBold from '@iconify-icons/solar/trash-bin-trash-bold';
 import { Pagination, Table, Button, Input, Label, Modal, TextField, Toast, toast } from '@heroui/react';
 import { getProducts, addProducts, deleteProducts, updateProducts } from './service/api-service.js';
 
@@ -207,10 +209,10 @@ function App() {
                     <Table.Cell className="whitespace-nowrap">
                       <div className="flex justify-end gap-2">
                         <Button variant="light" className="bg-blue-100" isIconOnly onPress={() => onEditHandler(product)}>
-                          <Icon icon="solar:pen-new-round-bold" className="text-blue-600" />
+                          <Icon icon={penNewRoundBold} className="text-blue-600" />
                         </Button>
                         <Button variant="danger-soft" isIconOnly onPress={() => openDeleteModal(product.id)}>
-                          <Icon icon="solar:trash-bin-trash-bold" className="w-5 h-5" />
+                          <Icon icon={trashBinTrashBold} className="w-5 h-5" />
                         </Button>
                       </div>
                     </Table.Cell>

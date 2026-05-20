@@ -24,7 +24,6 @@ function resolveApiUrl() {
       const isEnvLocalhost = ['localhost', '127.0.0.1'].includes(parsedUrl.hostname);
       const isRuntimeLocalhost = ['localhost', '127.0.0.1'].includes(runtimeHost);
 
-      // If app opened from another device, localhost should point to current host machine.
       if (runtimeHost && isEnvLocalhost && !isRuntimeLocalhost) {
         parsedUrl.hostname = runtimeHost;
       }
