@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Avatar,
   BreadcrumbItem,
@@ -45,8 +45,8 @@ function MainLayout() {
     setSelectedMenu('dashboard');
   }, [location.pathname]);
 
-  const handleLogout = useCallback(() => {
-    clearAuthSession();
+  const handleLogout = useCallback(async () => {
+    await clearAuthSession();
     navigate('/login', { replace: true });
   }, [navigate]);
 

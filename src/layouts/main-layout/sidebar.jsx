@@ -10,7 +10,7 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
-export const SidebarItemType = {
+const SidebarItemType = {
   Nest: 'nest',
 };
 
@@ -49,7 +49,7 @@ const Sidebar = React.forwardRef(({
     }),
   };
 
-  const renderNestItem = React.useCallback((item) => {
+  function renderNestItem(item) {
     const isNestType = item.items && item.items?.length > 0 && item?.type === SidebarItemType.Nest;
     const safeItem = { ...item };
 
@@ -155,9 +155,9 @@ const Sidebar = React.forwardRef(({
         ) : null}
       </ListboxItem>
     );
-  }, [isCompact, hideEndContent, iconClassName]);
+  }
 
-  const renderItem = React.useCallback((item) => {
+  function renderItem(item) {
     const isNestType = item.items && item.items?.length > 0 && item?.type === SidebarItemType.Nest;
     if (isNestType) {
       return renderNestItem(item);
@@ -205,7 +205,7 @@ const Sidebar = React.forwardRef(({
         ) : null}
       </ListboxItem>
     );
-  }, [isCompact, hideEndContent, iconClassName, renderNestItem]);
+  }
 
   return (
     <Listbox

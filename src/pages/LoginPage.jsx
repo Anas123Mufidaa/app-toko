@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, CardBody, CardHeader, Divider, Image, Input, Link } from '@heroui/react';
+import { Button, Card, CardBody, CardHeader, Input } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { login } from '@/service/api-service.js';
 import { setAuthSession } from '@/service/auth-storage.js';
@@ -51,7 +51,7 @@ function LoginPage() {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-linear-to-b from-white to-primary-300">
       <div className="flex min-h-screen items-center justify-center p-6 md:p-8">

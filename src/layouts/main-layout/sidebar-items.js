@@ -1,5 +1,3 @@
-import { SidebarItemType } from './sidebar';
-
 export const items = [
   {
     key: 'products',

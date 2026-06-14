@@ -1,5 +1,7 @@
 import { clearAuthSession, getAuthToken } from './auth-storage.js';
 
+const DEV_API_PROXY_PREFIX = '/__api';
+
 function trimTrailingSlash(url) {
   return url.endsWith('/') ? url.slice(0, -1) : url;
 }
@@ -17,18 +19,7 @@ function resolveApiBaseUrl() {
     const parsedUrl = new URL(envApiUrl);
 
     if (import.meta.env.DEV) {
-      const proxyPath = parsedUrl.pathname.replace(/\/+$/, '') || '/api';
-      return proxyPath;
-    }
-
-    if (typeof window !== 'undefined') {
-      const runtimeHost = window.location.hostname;
-      const isEnvLocalhost = ['localhost', '127.0.0.1'].includes(parsedUrl.hostname);
-      const isRuntimeLocalhost = ['localhost', '127.0.0.1'].includes(runtimeHost);
-
-      if (runtimeHost && isEnvLocalhost && !isRuntimeLocalhost) {
-        parsedUrl.hostname = runtimeHost;
-      }
+      return DEV_API_PROXY_PREFIX;
     }
 
     return trimTrailingSlash(parsedUrl.toString());
@@ -45,6 +36,7 @@ class ApiError extends Error {
     this.name = 'ApiError';
     this.status = options.status ?? 0;
     this.responseData = options.responseData ?? null;
+    this.errors = options.errors ?? options.responseData?.errors ?? {};
     this.isUnauthorized = options.isUnauthorized ?? false;
   }
 }
@@ -52,14 +44,13 @@ class ApiError extends Error {
 function redirectToLogin() {
   if (typeof window === 'undefined') return;
 
-  const onLoginPage = window.location.pathname === '/login';
-  if (!onLoginPage) {
-    window.location.replace('/login');
-  }
+  // Reload the application entry point first. React Router will then direct
+  // unauthenticated users to /login without requesting that SPA route directly.
+  window.location.replace('/');
 }
 
-function handleUnauthorized(responseData) {
-  clearAuthSession();
+async function handleUnauthorized(responseData) {
+  await clearAuthSession();
   redirectToLogin();
 
   throw new ApiError(responseData?.message || 'Akses Ditolak!', {
@@ -130,15 +121,23 @@ async function apiFetch(
       headers: requestHeaders,
       body: requestBody,
     });
-  } catch {
-    throw new ApiError(`Tidak bisa menghubungi API: ${requestUrl}`);
+  } catch (error) {
+    const browserMessage = error instanceof Error ? error.message : '';
+    const blockedHint = browserMessage.includes('Failed to fetch')
+      ? ' Request kemungkinan diblokir browser, extension, DNS, atau antivirus.'
+      : '';
+
+    throw new ApiError(
+      `Tidak bisa menghubungi API: ${requestUrl}.${blockedHint}`,
+      { responseData: { browserMessage } },
+    );
   }
 
   const responseData = parseAsJson ? await parseResponse(response) : null;
   const unauthorizedByMessage = responseData?.message === 'Akses Ditolak!';
 
   if (response.status === 401 || unauthorizedByMessage) {
-    handleUnauthorized(responseData);
+    await handleUnauthorized(responseData);
   }
 
   if (!response.ok) {

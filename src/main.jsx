@@ -15,6 +15,7 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
 
 if (import.meta.env.PROD) {
   registerSW({
+    immediate: true,
     onNeedRefresh() {
       console.info('Versi baru tersedia. Reload untuk update.');
     },

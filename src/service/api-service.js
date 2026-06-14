@@ -1,6 +1,5 @@
 import { ApiError, apiFetch } from './api-client.js';
-
-const PRODUCT_CACHE_KEY = 'app-toko-products-cache';
+import { PRODUCT_CACHE_KEY } from './auth-storage.js';
 
 function readProductsCache() {
   try {
@@ -57,10 +56,17 @@ async function getProducts() {
   }
 }
 
-async function addProducts({ nama_barang, harga }) {
+async function addProducts({ nama_barang, harga, gambar, kategori, status }) {
+  const formData = new FormData();
+  formData.append('nama_barang', nama_barang);
+  formData.append('harga', harga);
+  formData.append('gambar', gambar);
+  formData.append('kategori', kategori);
+  formData.append('status', status);
+
   const result = await apiFetch('tambah_barang.php', {
     method: 'POST',
-    body: { nama_barang, harga },
+    body: formData,
   });
 
   if (result?.status !== 'success') {
@@ -83,10 +89,28 @@ async function deleteProducts(id) {
   return result;
 }
 
-async function updateProducts({ id, nama_barang, harga }) {
+async function updateProducts({
+  id,
+  nama_barang,
+  harga,
+  kategori,
+  status,
+  gambar,
+}) {
+  const formData = new FormData();
+  formData.append('id', id);
+  formData.append('nama_barang', nama_barang);
+  formData.append('harga', harga);
+  formData.append('kategori', kategori);
+  formData.append('status', status);
+
+  if (gambar) {
+    formData.append('gambar', gambar);
+  }
+
   const result = await apiFetch('update_barang.php', {
-    method: 'PUT',
-    body: { id, nama_barang, harga },
+    method: 'POST',
+    body: formData,
   });
 
   if (result?.status !== 'success') {

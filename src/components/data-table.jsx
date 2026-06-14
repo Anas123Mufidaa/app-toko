@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   ScrollShadow,
   Spinner,
@@ -27,7 +26,7 @@ function DataTable({
         classNames={{
           base: 'h-full max-h-full w-full overflow-auto',
           table: 'min-h-[100px] min-w-[920px]',
-          th: 'bg-primary-100 text-primary-700 whitespace-nowrap',
+          th: 'bg-gray-100 text-primary-700 whitespace-nowrap',
         }}
       >
         <TableHeader columns={columns}>
