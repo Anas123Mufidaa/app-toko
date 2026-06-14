@@ -1,2 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap');
 @import "tailwindcss";
-@import "@heroui/styles"; 
+@plugin "../hero.ts";
+
+@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-geist: 'Nunito Sans', sans-serif;
+  --font-roboto: 'Nunito Sans', sans-serif;
+
+  --color-primary: #107EA3;
+  --color-primary-50: #E8F5F9;
+  --color-primary-100: #D0EBF2;
+  --color-primary-200: #A1D7E6;
+  --color-primary-300: #72C3D9;
+  --color-primary-400: #43AFCC;
+  --color-primary-500: #107EA3;
+  --color-primary-600: #0E7091;
+  --color-primary-700: #0B5D79;
+  --color-primary-800: #084A61;
+  --color-primary-900: #06374A;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.4);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.6);
+}
